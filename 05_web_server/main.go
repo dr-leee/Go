@@ -17,18 +17,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
-	err = db.Ping(ctx)
+	err = db.Ping(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	env := &rest.Env{
-		Repo: repository.DbModel{DB: db, CTX: ctx},
+		Repo: repository.DbModel{DB: db},
 	}
 
 	http.HandleFunc("/login", env.GetJsonLogin)
+	http.HandleFunc("/showlogins", env.ShowLogins)
 	log.Println(http.ListenAndServe(":8090", nil))
 }

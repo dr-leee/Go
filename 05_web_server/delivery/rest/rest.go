@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -123,10 +124,47 @@ func (env *Env) GetJsonLogin(w http.ResponseWriter, r *http.Request) {
 	//p.Time = time.Now()
 	//fmt.Fprintf(w, "Логин: %+v\n", p)
 
-	err = env.Repo.CreateLog(p.Login)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err = env.Repo.CreateLog(ctx, p.Login)
 	if err != nil {
 		msg := "Ошибка БД"
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
+	}
+}
+
+func (env *Env) ShowLogins(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	rows, err := env.Repo.GetLogs(ctx)
+	if err != nil {
+		msg := "Ошибка БД"
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
+	allLogins := make([]types.Log, 0)
+
+	for rows.Next() {
+		login := types.Log{}
+		err := rows.Scan(&login.ID, &login.Login, &login.Time)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, http.StatusText(500), 500)
+			return
+		}
+		allLogins = append(allLogins, login)
+	}
+
+	if err = rows.Err(); err != nil {
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	for _, login := range allLogins {
+		fmt.Fprintf(w, "%d %s %s\n", login.ID, login.Login, login.Time)
 	}
 }
