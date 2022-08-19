@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-const layoutDT = "2006-01-02 15:04"
+//const layoutDT = "2006-01-02 15:04"
 
 type Env struct {
 	Repo repository.DbModel
@@ -135,7 +135,7 @@ func (env *Env) GetJsonLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (env *Env) ShowLogins(w http.ResponseWriter, r *http.Request) {
+func (env *Env) ShowLogins(w http.ResponseWriter, _ *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -164,7 +164,13 @@ func (env *Env) ShowLogins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var tmpl = `<tr><td>%d</td><td>%s</td><td>%s</td></tr>`
+	fmt.Fprintf(w, "<table cellspacing=\"2\" border=\"1\" cellpadding=\"5\">")
+	fmt.Fprintf(w, `<tr bgcolor="#cecece"><td>ID</td><td>Login</td><td>Time</td></tr>`)
+
 	for _, login := range allLogins {
-		fmt.Fprintf(w, "%d %s %s\n", login.ID, login.Login, login.Time)
+		//fmt.Fprintf(w, "%d %s %s\n", login.ID, login.Login, login.Time)
+		fmt.Fprintf(w, tmpl, login.ID, login.Login, login.Time)
 	}
+	fmt.Fprintf(w, "</table>")
 }
